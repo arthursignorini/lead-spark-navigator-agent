@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,61 +12,263 @@ interface LeadDashboardProps {
 }
 
 const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
-  // Função para gerar dados dinâmicos baseados nos critérios de pesquisa
+  // Função para gerar hash baseado nos critérios (para consistência)
+  const getCriteriaHash = () => {
+    const criteriaString = [
+      searchCriteria?.keywords || '',
+      searchCriteria?.location || '',
+      searchCriteria?.industry || '',
+      searchCriteria?.companySize || '',
+      searchCriteria?.jobTitles || ''
+    ].join('|');
+    
+    let hash = 0;
+    for (let i = 0; i < criteriaString.length; i++) {
+      const char = criteriaString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  };
+
+  // Função para gerar dados consistentes mas variados baseados nos critérios
   const generateDynamicData = () => {
-    const hasKeywords = searchCriteria?.keywords?.trim();
-    const hasLocation = searchCriteria?.location?.trim();
-    const hasIndustry = searchCriteria?.industry;
-    const hasCompanySize = searchCriteria?.companySize;
+    // Se não há critérios, mostra dados padrão baixos
+    if (!searchCriteria?.keywords && !searchCriteria?.location && 
+        !searchCriteria?.industry && !searchCriteria?.companySize && 
+        !searchCriteria?.jobTitles) {
+      return {
+        totalLeads: 23,
+        qualifiedLeads: 8,
+        contactedLeads: 3,
+        conversionRate: "34.8"
+      };
+    }
 
-    // Multiplier baseado nos critérios preenchidos
-    let multiplier = 1;
-    if (hasKeywords) multiplier += 0.3;
-    if (hasLocation) multiplier += 0.2;
-    if (hasIndustry) multiplier += 0.25;
-    if (hasCompanySize) multiplier += 0.25;
+    const hash = getCriteriaHash();
+    const random = (seed: number) => (Math.sin(seed) * 10000) % 1;
+    
+    // Base leads baseado na combinação de critérios
+    let baseLeads = 15;
+    
+    // Multiplicadores por indústria
+    const industryLeads: { [key: string]: number } = {
+      "Tecnologia": 150,
+      "SaaS": 89,
+      "Marketing": 76,
+      "E-commerce": 93,
+      "Finanças": 67,
+      "Consultoria": 54,
+      "Saúde": 41,
+      "Educação": 28,
+      "Manufatura": 35,
+      "Varejo": 48,
+      "Imobiliário": 62,
+      "Telecom": 71
+    };
 
-    const baseLeads = Math.round(847 * multiplier);
-    const baseQualified = Math.round(289 * multiplier);
-    const baseContacted = Math.round(126 * multiplier);
+    // Multiplicadores por localização
+    const locationLeads: { [key: string]: number } = {
+      "São Paulo": 2.1,
+      "Rio de Janeiro": 1.6,
+      "Belo Horizonte": 1.2,
+      "Brasília": 1.1,
+      "Porto Alegre": 1.0,
+      "Curitiba": 0.9,
+      "Salvador": 0.8,
+      "Recife": 0.7,
+      "Fortaleza": 0.6
+    };
+
+    // Calcular leads baseado na indústria
+    if (searchCriteria?.industry && industryLeads[searchCriteria.industry]) {
+      baseLeads = industryLeads[searchCriteria.industry];
+    }
+
+    // Ajustar por localização
+    if (searchCriteria?.location) {
+      const locationKey = Object.keys(locationLeads).find(loc => 
+        searchCriteria.location!.toLowerCase().includes(loc.toLowerCase())
+      );
+      if (locationKey) {
+        baseLeads = Math.round(baseLeads * locationLeads[locationKey]);
+      } else {
+        baseLeads = Math.round(baseLeads * 0.7); // Cidade menor
+      }
+    }
+
+    // Ajustar por tamanho da empresa
+    const sizeMultipliers: { [key: string]: number } = {
+      "1-10 funcionários": 2.8,
+      "11-50 funcionários": 1.9,
+      "51-200 funcionários": 1.2,
+      "201-500 funcionários": 0.7,
+      "501-1000 funcionários": 0.4,
+      "1000+ funcionários": 0.2
+    };
+
+    if (searchCriteria?.companySize && sizeMultipliers[searchCriteria.companySize]) {
+      baseLeads = Math.round(baseLeads * sizeMultipliers[searchCriteria.companySize]);
+    }
+
+    // Ajustar por palavras-chave
+    if (searchCriteria?.keywords) {
+      const keywordCount = searchCriteria.keywords.split(',').length;
+      baseLeads = Math.round(baseLeads * (1 + keywordCount * 0.15));
+    }
+
+    // Adicionar variação consistente baseada no hash
+    const variation = 0.8 + (Math.abs(random(hash)) * 0.4);
+    baseLeads = Math.round(baseLeads * variation);
+
+    const qualifiedRate = 0.20 + (Math.abs(random(hash + 1)) * 0.20); // 20-40%
+    const contactRate = 0.15 + (Math.abs(random(hash + 2)) * 0.15); // 15-30%
+
+    const qualifiedLeads = Math.round(baseLeads * qualifiedRate);
+    const contactedLeads = Math.round(qualifiedLeads * contactRate);
+    const conversionRate = ((qualifiedLeads / baseLeads) * 100).toFixed(1);
 
     return {
-      totalLeads: baseLeads,
-      qualifiedLeads: baseQualified,
-      contactedLeads: baseContacted,
-      conversionRate: ((baseQualified / baseLeads) * 100).toFixed(1)
+      totalLeads: Math.max(1, baseLeads),
+      qualifiedLeads: Math.max(1, qualifiedLeads),
+      contactedLeads: Math.max(1, contactedLeads),
+      conversionRate
     };
   };
 
-  // Função para gerar dados semanais baseados em datas reais
+  // Função para gerar dados semanais específicos
   const generateWeeklyData = () => {
     const today = new Date();
     const weekData = [];
+    const hash = getCriteriaHash();
+    const random = (seed: number) => (Math.sin(seed) * 10000) % 1;
     
-    // Gerar dados para os últimos 7 dias
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       
       const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-      const multiplier = searchCriteria?.keywords ? 1.5 : 1;
       
-      // Variação baseada no dia da semana (menos atividade nos fins de semana)
-      const dayMultiplier = [0, 1, 1.2, 1.1, 1.3, 1.0, 0.7][date.getDay()];
+      // Base leads baseado nos critérios
+      let baseDayLeads = 5;
+      
+      if (searchCriteria?.industry) {
+        const industryMultiplier: { [key: string]: number } = {
+          "Tecnologia": 3.5,
+          "SaaS": 2.8,
+          "Marketing": 2.3,
+          "E-commerce": 2.1,
+          "Finanças": 1.8,
+          "Consultoria": 1.5,
+          "Saúde": 1.2,
+          "Educação": 1.0
+        };
+        baseDayLeads *= (industryMultiplier[searchCriteria.industry] || 1);
+      }
+
+      if (searchCriteria?.companySize) {
+        const sizeMultiplier: { [key: string]: number } = {
+          "1-10 funcionários": 2.5,
+          "11-50 funcionários": 1.8,
+          "51-200 funcionários": 1.3,
+          "201-500 funcionários": 0.8,
+          "501-1000 funcionários": 0.5,
+          "1000+ funcionários": 0.3
+        };
+        baseDayLeads *= (sizeMultiplier[searchCriteria.companySize] || 1);
+      }
+
+      // Variação por dia da semana
+      const dayMultiplier = [0.3, 1.2, 1.4, 1.3, 1.5, 1.1, 0.4][date.getDay()];
+      
+      // Variação consistente baseada no hash + dia
+      const dayVariation = 0.7 + (Math.abs(random(hash + i)) * 0.6);
+      
+      const leads = Math.round(baseDayLeads * dayMultiplier * dayVariation);
+      const qualified = Math.round(leads * (0.15 + Math.abs(random(hash + i + 10)) * 0.25));
       
       weekData.push({
         day: dayName.charAt(0).toUpperCase() + dayName.slice(1),
         date: date.toLocaleDateString('pt-BR'),
-        leads: Math.round((35 + Math.random() * 40) * multiplier * dayMultiplier),
-        qualified: Math.round((10 + Math.random() * 20) * multiplier * dayMultiplier)
+        leads: Math.max(0, leads),
+        qualified: Math.max(0, qualified)
       });
     }
     
     return weekData;
   };
 
+  // Gerar leads específicos baseados nos critérios
+  const generateTopLeads = () => {
+    const hash = getCriteriaHash();
+    const random = (seed: number) => (Math.sin(seed) * 10000) % 1;
+
+    // Base de nomes e empresas
+    const names = [
+      "Maria Silva Santos", "João Carlos Oliveira", "Ana Paula Costa", "Carlos Eduardo Lima",
+      "Fernanda Rodrigues", "Roberto Almeida", "Juliana Ferreira", "Pedro Henrique Souza",
+      "Camila Nascimento", "Rafael Santos", "Larissa Mendes", "Gustavo Pereira"
+    ];
+
+    const positions = {
+      "Tecnologia": ["CTO", "Head of Engineering", "Tech Lead", "VP de Produto"],
+      "SaaS": ["CEO", "Head of Growth", "VP de Vendas", "Chief Revenue Officer"],
+      "Marketing": ["CMO", "Diretor de Marketing", "Head of Marketing", "Gerente de Marketing"],
+      "E-commerce": ["Head of E-commerce", "Diretor Comercial", "VP de Vendas", "Gerente de Vendas"],
+      "Finanças": ["CFO", "Diretor Financeiro", "Controller", "Gerente Financeiro"],
+      "Consultoria": ["Partner", "Diretor", "Gerente Senior", "Consultor Senior"],
+      "Saúde": ["Diretor Médico", "Administrador", "Gerente de Operações", "Coordenador"],
+      "Educação": ["Diretor Acadêmico", "Coordenador", "Reitor", "Vice-Reitor"]
+    };
+
+    const companies = {
+      "Tecnologia": ["TechCorp", "DevSolutions", "InnovaTech", "CodeLab"],
+      "SaaS": ["CloudWorks", "SaaS Innovations", "PlatformPro", "DataStream"],
+      "Marketing": ["MarketingPro", "DigitalBoost", "CreativeHub", "BrandForce"],
+      "E-commerce": ["ShopTech", "E-commerce Plus", "RetailPro", "CommerceHub"],
+      "Finanças": ["FinanceCorpP", "InvestPro", "CapitalGroup", "MoneyTech"],
+      "Consultoria": ["ConsultPro", "StrategyCorp", "BusinessSolutions", "ExpertHub"],
+      "Saúde": ["HealthTech", "MedicalCorp", "CareSystem", "HealthPro"],
+      "Educação": ["EduTech", "LearnCorp", "AcademyPro", "StudyHub"]
+    };
+
+    const industryKey = searchCriteria?.industry || "Tecnologia";
+    
+    const leads = [];
+    for (let i = 0; i < 4; i++) {
+      const nameIndex = Math.floor(Math.abs(random(hash + i)) * names.length);
+      const positionIndex = Math.floor(Math.abs(random(hash + i + 20)) * (positions[industryKey] || positions["Tecnologia"]).length);
+      const companyIndex = Math.floor(Math.abs(random(hash + i + 40)) * (companies[industryKey] || companies["Tecnologia"]).length);
+      
+      const score = 70 + Math.floor(Math.abs(random(hash + i + 60)) * 30);
+      const status = score > 85 ? "Quente" : score > 75 ? "Morno" : "Frio";
+      
+      const name = names[nameIndex];
+      const position = (positions[industryKey] || positions["Tecnologia"])[positionIndex];
+      let company = (companies[industryKey] || companies["Tecnologia"])[companyIndex];
+      
+      // Adicionar localização se especificada
+      if (searchCriteria?.location) {
+        company += ` ${searchCriteria.location.split(',')[0]}`;
+      }
+
+      leads.push({
+        name,
+        company,
+        position,
+        score,
+        email: `${name.toLowerCase().replace(/\s+/g, '.')}@${company.toLowerCase().replace(/\s+/g, '')}.com`,
+        phone: `+55 ${11 + i} ${Math.floor(10000 + Math.abs(random(hash + i + 80)) * 90000)}-${Math.floor(1000 + Math.abs(random(hash + i + 100)) * 9000)}`,
+        status
+      });
+    }
+
+    return leads;
+  };
+
   const dynamicData = generateDynamicData();
   const weeklyData = generateWeeklyData();
+  const topLeads = generateTopLeads();
 
   const stats = [
     { 
@@ -102,97 +303,44 @@ const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
 
   // Ajustar distribuição por fonte baseada nos critérios
   const getSourceDistribution = () => {
+    const hash = getCriteriaHash();
+    const random = (seed: number) => (Math.sin(seed) * 10000) % 1;
+
+    // Distribuição baseada na indústria
     let linkedinPercent = 45;
     let apolloPercent = 30;
     let zoomInfoPercent = 15;
     let othersPercent = 10;
 
-    // Se tem critérios específicos, ajusta a distribuição
     if (searchCriteria?.industry === 'Tecnologia' || searchCriteria?.industry === 'SaaS') {
       linkedinPercent = 55;
       apolloPercent = 35;
       zoomInfoPercent = 8;
       othersPercent = 2;
+    } else if (searchCriteria?.industry === 'Saúde' || searchCriteria?.industry === 'Educação') {
+      linkedinPercent = 35;
+      apolloPercent = 25;
+      zoomInfoPercent = 25;
+      othersPercent = 15;
     }
 
+    // Adicionar variação baseada nos critérios
+    const variation = Math.abs(random(hash)) * 10;
+    linkedinPercent = Math.max(30, Math.min(60, linkedinPercent + variation - 5));
+    apolloPercent = Math.max(20, Math.min(40, apolloPercent + variation - 5));
+
+    // Normalizar para 100%
+    const total = linkedinPercent + apolloPercent + zoomInfoPercent + othersPercent;
+    
     return [
-      { name: 'LinkedIn', value: linkedinPercent, color: '#0077B5' },
-      { name: 'Apollo.io', value: apolloPercent, color: '#FF6B35' },
-      { name: 'ZoomInfo', value: zoomInfoPercent, color: '#00C896' },
-      { name: 'Outros', value: othersPercent, color: '#6B73FF' }
+      { name: 'LinkedIn', value: Math.round((linkedinPercent / total) * 100), color: '#0077B5' },
+      { name: 'Apollo.io', value: Math.round((apolloPercent / total) * 100), color: '#FF6B35' },
+      { name: 'ZoomInfo', value: Math.round((zoomInfoPercent / total) * 100), color: '#00C896' },
+      { name: 'Outros', value: Math.round((othersPercent / total) * 100), color: '#6B73FF' }
     ];
   };
 
   const leadsBySource = getSourceDistribution();
-
-  // Gerar leads principais baseados nos critérios
-  const generateTopLeads = () => {
-    const baseLeads = [
-      {
-        name: "Maria Silva Santos",
-        company: "TechCorp Brasil",
-        position: "Diretora de Marketing",
-        score: 95,
-        email: "maria.santos@techcorp.com.br",
-        phone: "+55 11 99999-9999",
-        status: "Quente"
-      },
-      {
-        name: "João Carlos Oliveira",
-        company: "Fintech Solutions",
-        position: "CEO & Founder",
-        score: 92,
-        email: "joao@fintechsolutions.com",
-        phone: "+55 21 88888-8888",
-        status: "Quente"
-      },
-      {
-        name: "Ana Paula Costa",
-        company: "E-commerce Plus",
-        position: "VP de Vendas",
-        score: 88,
-        email: "ana.costa@ecommerceplus.com",
-        phone: "+55 11 77777-7777",
-        status: "Morno"
-      },
-      {
-        name: "Carlos Eduardo Lima",
-        company: "SaaS Innovations",
-        position: "Head of Growth",
-        score: 85,
-        email: "carlos@saasinnovations.com",
-        phone: "+55 11 66666-6666",
-        status: "Morno"
-      }
-    ];
-
-    // Ajustar leads baseado nos critérios de busca
-    if (searchCriteria?.industry) {
-      const industryMap: { [key: string]: string } = {
-        'Tecnologia': 'Tech Solutions',
-        'SaaS': 'SaaS Innovations',
-        'Finanças': 'Financial Services',
-        'E-commerce': 'E-commerce Plus',
-        'Marketing': 'Marketing Pro',
-        'Saúde': 'HealthTech'
-      };
-      
-      const industryCompany = industryMap[searchCriteria.industry];
-      if (industryCompany) {
-        baseLeads[0].company = `${industryCompany} ${searchCriteria.location || 'Brasil'}`;
-      }
-    }
-
-    if (searchCriteria?.location) {
-      baseLeads.forEach(lead => {
-        lead.company = `${lead.company.split(' ')[0]} ${searchCriteria.location}`;
-      });
-    }
-
-    return baseLeads;
-  };
-
-  const topLeads = generateTopLeads();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -211,7 +359,10 @@ const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-blue-700">
               <Target className="h-4 w-4" />
-              <span>Dashboard atualizado com base nos critérios de pesquisa</span>
+              <span>Dashboard atualizado com base nos critérios: {searchCriteria?.industry || 'Geral'} 
+                {searchCriteria?.location && ` • ${searchCriteria.location}`}
+                {searchCriteria?.companySize && ` • ${searchCriteria.companySize}`}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -245,7 +396,10 @@ const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
         <Card>
           <CardHeader>
             <CardTitle>Performance dos Últimos 7 Dias</CardTitle>
-            <CardDescription>Leads coletados vs qualificados (dados atualizados)</CardDescription>
+            <CardDescription>
+              Leads coletados vs qualificados
+              {searchCriteria?.industry && ` • Setor: ${searchCriteria.industry}`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -271,7 +425,10 @@ const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
         <Card>
           <CardHeader>
             <CardTitle>Distribuição por Fonte</CardTitle>
-            <CardDescription>Origem dos leads (ajustada pelos critérios)</CardDescription>
+            <CardDescription>
+              Origem dos leads
+              {searchCriteria?.industry && ` • Otimizado para ${searchCriteria.industry}`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -302,8 +459,8 @@ const LeadDashboard = ({ searchCriteria }: LeadDashboardProps) => {
           <div>
             <CardTitle>Leads de Alto Potencial</CardTitle>
             <CardDescription>
-              {searchCriteria?.keywords || searchCriteria?.industry ? 
-                'Leads filtrados pelos seus critérios de pesquisa' : 
+              {searchCriteria?.industry ? 
+                `Leads do setor ${searchCriteria.industry}${searchCriteria?.location ? ` em ${searchCriteria.location}` : ''}` : 
                 'Os leads mais qualificados encontrados recentemente'
               }
             </CardDescription>
