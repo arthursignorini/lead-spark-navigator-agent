@@ -8,69 +8,109 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Settings, CheckCircle, AlertCircle, Link, Eye, EyeOff } from 'lucide-react';
+import { Database, Settings, CheckCircle, AlertCircle, Link, Eye, EyeOff, Globe, Users, Building, Mail } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const DataSources = () => {
-  const [showApiKeys, setShowApiKeys] = useState(false);
+  const [showUrls, setShowUrls] = useState(false);
   const { toast } = useToast();
 
   const [sources, setSources] = useState([
     {
-      id: 'apollo',
-      name: 'Apollo.io',
-      description: 'Plataforma líder em dados de contatos B2B',
+      id: 'linkedin-free',
+      name: 'LinkedIn (Busca Gratuita)',
+      description: 'Pesquisa manual no LinkedIn usando busca avançada',
       enabled: true,
       configured: true,
-      apiKey: 'ap-*********************xyz',
+      url: 'https://www.linkedin.com/search/results/people/',
       status: 'active',
-      lastSync: '2 horas atrás',
-      quota: { used: 2840, total: 5000 },
-      features: ['Busca por empresa', 'Contatos diretos', 'Email finder', 'Enriquecimento'],
-      logo: '🚀',
-      color: 'bg-blue-50 border-blue-200'
-    },
-    {
-      id: 'linkedin',
-      name: 'LinkedIn Sales Navigator',
-      description: 'Rede profissional com dados ricos de perfis',
-      enabled: true,
-      configured: false,
-      apiKey: '',
-      status: 'inactive',
-      lastSync: 'Nunca',
-      quota: { used: 0, total: 1000 },
-      features: ['Busca avançada', 'Perfis detalhados', 'Conexões', 'InMail'],
+      lastSync: 'Manual',
+      quota: { used: 0, total: 'Ilimitado' },
+      features: ['Busca por cargo', 'Filtros de localização', 'Filtros de empresa', 'Visualização de perfis'],
       logo: '💼',
-      color: 'bg-gray-50 border-gray-200'
+      color: 'bg-blue-50 border-blue-200',
+      type: 'manual',
+      instructions: 'Use filtros: cargo, localização, empresa atual, conexões'
     },
     {
-      id: 'zoominfo',
-      name: 'ZoomInfo',
-      description: 'Base de dados B2B com informações empresariais',
-      enabled: false,
-      configured: false,
-      apiKey: '',
-      status: 'inactive',
-      lastSync: 'Nunca',
-      quota: { used: 0, total: 2000 },
-      features: ['Dados empresariais', 'Tecnografias', 'Intent data', 'Hierarquia'],
-      logo: '🔍',
-      color: 'bg-gray-50 border-gray-200'
-    },
-    {
-      id: 'hunter',
-      name: 'Hunter.io',
-      description: 'Especialista em descoberta e verificação de emails',
+      id: 'google-maps',
+      name: 'Google Maps Business',
+      description: 'Busca empresas locais através do Google Maps',
       enabled: true,
       configured: true,
-      apiKey: 'hun-*********************abc',
+      url: 'https://www.google.com/maps/search/',
       status: 'active',
-      lastSync: '1 hora atrás',
-      quota: { used: 180, total: 500 },
-      features: ['Email finder', 'Verificação', 'Domain search', 'Bulk tasks'],
+      lastSync: 'Manual',
+      quota: { used: 0, total: 'Ilimitado' },
+      features: ['Empresas locais', 'Informações de contato', 'Horários', 'Avaliações'],
+      logo: '🗺️',
+      color: 'bg-green-50 border-green-200',
+      type: 'manual',
+      instructions: 'Pesquise por: "empresas de tecnologia São Paulo" ou similar'
+    },
+    {
+      id: 'crunchbase-free',
+      name: 'Crunchbase (Gratuito)',
+      description: 'Informações de startups e empresas em crescimento',
+      enabled: true,
+      configured: true,
+      url: 'https://www.crunchbase.com/discover/organization.companies/',
+      status: 'active',
+      lastSync: 'Manual',
+      quota: { used: 0, total: '10 visualizações/dia' },
+      features: ['Startups', 'Financiamento', 'Executivos', 'Dados de empresa'],
+      logo: '🚀',
+      color: 'bg-purple-50 border-purple-200',
+      type: 'manual',
+      instructions: 'Filtre por: localização, setor, tamanho, status de financiamento'
+    },
+    {
+      id: 'github-devs',
+      name: 'GitHub Developers',
+      description: 'Encontre desenvolvedores e empresas tech no GitHub',
+      enabled: true,
+      configured: true,
+      url: 'https://github.com/search?type=users',
+      status: 'active',
+      lastSync: 'Manual',
+      quota: { used: 0, total: 'Ilimitado' },
+      features: ['Desenvolvedores', 'Empresas tech', 'Tecnologias', 'Localização'],
+      logo: '👨‍💻',
+      color: 'bg-gray-50 border-gray-200',
+      type: 'manual',
+      instructions: 'Busque por: location:"São Paulo" language:JavaScript'
+    },
+    {
+      id: 'instagram-business',
+      name: 'Instagram Business',
+      description: 'Empresas e empreendedores no Instagram',
+      enabled: false,
+      configured: true,
+      url: 'https://www.instagram.com/explore/tags/',
+      status: 'inactive',
+      lastSync: 'Manual',
+      quota: { used: 0, total: 'Ilimitado' },
+      features: ['Empresas locais', 'Empreendedores', 'Hashtags', 'Stories'],
+      logo: '📸',
+      color: 'bg-pink-50 border-pink-200',
+      type: 'manual',
+      instructions: 'Use hashtags: #empresasp #startupbrasil #empreendedorismo'
+    },
+    {
+      id: 'email-finder',
+      name: 'Email Finder (Gratuito)',
+      description: 'Técnicas gratuitas para encontrar emails corporativos',
+      enabled: true,
+      configured: true,
+      url: '',
+      status: 'active',
+      lastSync: 'Manual',
+      quota: { used: 0, total: 'Ilimitado' },
+      features: ['Padrões de email', 'Verificação simples', 'Redes sociais', 'Sites corporativos'],
       logo: '📧',
-      color: 'bg-green-50 border-green-200'
+      color: 'bg-yellow-50 border-yellow-200',
+      type: 'technique',
+      instructions: 'Padrões: nome.sobrenome@empresa.com, nome@empresa.com'
     }
   ]);
 
@@ -87,32 +127,19 @@ const DataSources = () => {
     });
   };
 
-  const handleSaveApiKey = (sourceId: string, apiKey: string) => {
-    setSources(prev => prev.map(source => 
-      source.id === sourceId 
-        ? { ...source, apiKey, configured: !!apiKey, status: apiKey ? 'active' : 'inactive' }
-        : source
-    ));
-    
-    toast({
-      title: "API Key Salva",
-      description: "A chave de API foi configurada com sucesso.",
-    });
-  };
-
-  const testConnection = (sourceId: string) => {
-    toast({
-      title: "Testando Conexão",
-      description: "Verificando conectividade com a fonte de dados...",
-    });
-    
-    // Simulate test
-    setTimeout(() => {
+  const openSource = (source: any) => {
+    if (source.type === 'manual' && source.url) {
+      window.open(source.url, '_blank');
       toast({
-        title: "Conexão Bem-sucedida",
-        description: "A fonte de dados está funcionando corretamente.",
+        title: "Fonte Aberta",
+        description: `Abrindo ${source.name} em nova aba para pesquisa manual.`,
       });
-    }, 2000);
+    } else if (source.type === 'technique') {
+      toast({
+        title: "Técnica de Email",
+        description: "Veja as instruções para encontrar emails corporativos.",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -121,10 +148,8 @@ const DataSources = () => {
         return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
       case 'inactive':
         return <Badge variant="secondary">Inativo</Badge>;
-      case 'error':
-        return <Badge variant="destructive">Erro</Badge>;
       default:
-        return <Badge variant="outline">Desconhecido</Badge>;
+        return <Badge variant="outline">Manual</Badge>;
     }
   };
 
@@ -132,23 +157,20 @@ const DataSources = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Fontes de Dados</h2>
-          <p className="text-gray-600">Configure e gerencie suas fontes de dados para prospecção</p>
+          <h2 className="text-2xl font-bold">Fontes de Dados Gratuitas</h2>
+          <p className="text-gray-600">Métodos gratuitos e eficazes para encontrar leads qualificados</p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setShowApiKeys(!showApiKeys)}
-        >
-          {showApiKeys ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-          {showApiKeys ? 'Ocultar' : 'Mostrar'} API Keys
-        </Button>
+        <Badge variant="outline" className="bg-green-50 text-green-700">
+          <CheckCircle className="h-4 w-4 mr-1" />
+          100% Gratuito
+        </Badge>
       </div>
 
       <Tabs defaultValue="sources" className="space-y-6">
         <TabsList>
           <TabsTrigger value="sources">Fontes Disponíveis</TabsTrigger>
-          <TabsTrigger value="settings">Configurações Gerais</TabsTrigger>
+          <TabsTrigger value="techniques">Técnicas de Prospecção</TabsTrigger>
+          <TabsTrigger value="templates">Templates de Pesquisa</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sources">
@@ -186,67 +208,51 @@ const DataSources = () => {
                     </div>
                   </div>
 
+                  {/* Instructions */}
+                  <div className="bg-white/50 p-3 rounded-lg">
+                    <Label className="text-sm font-medium mb-1 block">Como Usar</Label>
+                    <p className="text-sm text-gray-600">{source.instructions}</p>
+                  </div>
+
                   {/* Quota */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <Label className="text-sm font-medium">Cota de API</Label>
+                      <Label className="text-sm font-medium">Limite</Label>
                       <span className="text-sm text-gray-600">
-                        {source.quota.used}/{source.quota.total}
+                        {typeof source.quota.total === 'string' ? source.quota.total : `${source.quota.used}/${source.quota.total}`}
                       </span>
                     </div>
-                    <Progress 
-                      value={(source.quota.used / source.quota.total) * 100} 
-                      className="h-2"
-                    />
-                  </div>
-
-                  {/* API Key Configuration */}
-                  <div>
-                    <Label htmlFor={`api-key-${source.id}`} className="text-sm font-medium">
-                      API Key
-                    </Label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        id={`api-key-${source.id}`}
-                        type={showApiKeys ? "text" : "password"}
-                        placeholder="Cole sua API key aqui..."
-                        defaultValue={source.apiKey}
-                        className="flex-1"
+                    {typeof source.quota.total === 'number' && (
+                      <Progress 
+                        value={(source.quota.used / source.quota.total) * 100} 
+                        className="h-2"
                       />
-                      <Button
-                        size="sm"
-                        onClick={() => handleSaveApiKey(source.id, 'nova-api-key')}
-                        disabled={!source.enabled}
-                      >
-                        Salvar
-                      </Button>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Status & Actions */}
+                  {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="text-sm text-gray-600">
-                      <span>Última sincronização: {source.lastSync}</span>
+                      <span>Método: {source.lastSync}</span>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => testConnection(source.id)}
-                        disabled={!source.configured || !source.enabled}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Testar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={!source.configured || !source.enabled}
-                      >
-                        <Link className="h-4 w-4 mr-1" />
-                        Configurar
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => openSource(source)}
+                      disabled={!source.enabled}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {source.type === 'manual' ? (
+                        <>
+                          <Globe className="h-4 w-4 mr-1" />
+                          Abrir Site
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Técnica
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -254,88 +260,107 @@ const DataSources = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="settings">
+        <TabsContent value="techniques">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Configurações de Coleta</CardTitle>
-                <CardDescription>Configure como os dados são coletados</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Técnicas de Email Finding
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Coleta Automática</Label>
-                    <p className="text-sm text-gray-600">Executar coleta automaticamente a cada hora</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Deduplicação</Label>
-                    <p className="text-sm text-gray-600">Remover leads duplicados automaticamente</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Validação de Email</Label>
-                    <p className="text-sm text-gray-600">Verificar emails antes de adicionar ao CRM</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
                 <div>
-                  <Label htmlFor="max-leads">Limite Diário de Leads</Label>
-                  <Input
-                    id="max-leads"
-                    type="number"
-                    defaultValue="200"
-                    className="mt-1"
-                  />
+                  <h4 className="font-medium mb-2">Padrões Comuns de Email:</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• nome.sobrenome@empresa.com</li>
+                    <li>• nome@empresa.com</li>
+                    <li>• inicial.sobrenome@empresa.com</li>
+                    <li>• nome.inicial@empresa.com</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Ferramentas de Verificação:</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• Verificar no LinkedIn se tem email</li>
+                    <li>• Buscar no site da empresa</li>
+                    <li>• Verificar assinatura em posts/artigos</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Configurações de Privacidade</CardTitle>
-                <CardDescription>Conformidade com LGPD e privacidade</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Estratégias de Pesquisa
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Conformidade LGPD</Label>
-                    <p className="text-sm text-gray-600">Aplicar filtros de conformidade</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Criptografia de Dados</Label>
-                    <p className="text-sm text-gray-600">Criptografar dados sensíveis</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Log de Auditoria</Label>
-                    <p className="text-sm text-gray-600">Registrar todas as atividades</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
                 <div>
-                  <Label htmlFor="retention">Retenção de Dados (dias)</Label>
-                  <Input
-                    id="retention"
-                    type="number"
-                    defaultValue="365"
-                    className="mt-1"
-                  />
+                  <h4 className="font-medium mb-2">LinkedIn Avançado:</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• Use aspas para termos exatos</li>
+                    <li>• Combine filtros de localização + cargo</li>
+                    <li>• Procure por mudanças recentes de emprego</li>
+                    <li>• Veja conexões em comum</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Google Maps:</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• "empresas de [setor] em [cidade]"</li>
+                    <li>• Verificar horários de funcionamento</li>
+                    <li>• Ler reviews para entender necessidades</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Templates de Pesquisa por Setor</CardTitle>
+                <CardDescription>Copie e use estes templates para suas pesquisas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">🏢 Tecnologia</h4>
+                      <p className="text-sm text-gray-600 mb-2">LinkedIn:</p>
+                      <code className="text-xs bg-white p-2 rounded block">
+                        "CTO" OR "Head of Technology" AND "São Paulo"
+                      </code>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">💰 Finanças</h4>
+                      <p className="text-sm text-gray-600 mb-2">LinkedIn:</p>
+                      <code className="text-xs bg-white p-2 rounded block">
+                        "CFO" OR "Diretor Financeiro" AND "Brasil"
+                      </code>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">🏥 Saúde</h4>
+                      <p className="text-sm text-gray-600 mb-2">Google Maps:</p>
+                      <code className="text-xs bg-white p-2 rounded block">
+                        clínicas médicas Rio de Janeiro
+                      </code>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">🛒 E-commerce</h4>
+                      <p className="text-sm text-gray-600 mb-2">Crunchbase:</p>
+                      <code className="text-xs bg-white p-2 rounded block">
+                        E-commerce AND Brazil AND Series A
+                      </code>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
